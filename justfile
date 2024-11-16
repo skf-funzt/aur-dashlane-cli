@@ -3,8 +3,10 @@ pkgbase:="dashlane-cli-git"
 default:
     @just --choose
 
+CI:=false
+
 _install-pacman-contrib:
-    @if [ -z "$CI" ]; then sudo pacman -S pacman-contrib --noconfirm; else pacman -S pacman-contrib --noconfirm; fi
+    @if [ -z "{{ CI }}" ]; then sudo pacman -S pacman-contrib --noconfirm; else pacman -S pacman-contrib --noconfirm; fi
 
 build:
     @makepkg
