@@ -16,6 +16,7 @@ jobs:
       uses: actions/checkout@v3
       with:
         fetch-depth: 0
+        set-safe-directory: true
 
     - name: Install required packages
       run: |
@@ -41,7 +42,6 @@ jobs:
         chmod 644 /home/builder/.ssh/aur.pub
         ssh-keyscan aur.archlinux.org >> /home/builder/.ssh/known_hosts
         git config --global init.defaultBranch master
-        git config --global --add safe.directory /__w/aur-dashlane-cli/aur-dashlane-cli
         git init
         git remote add aur "$AUR_SSH_REMOTE"
         git config --global user.email "$GIT_COMMITTER_EMAIL"
