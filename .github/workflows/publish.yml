@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: archlinux:latest
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
@@ -23,11 +24,8 @@ jobs:
 
     - name: Create non-root user
       run: |
-        useradd -m githubuser
-        echo "githubuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
-
-    - name: Change ownership of repository
-      run: chown -R githubuser:githubuser /__w/aur-dashlane-cli/aur-dashlane-cli
+        useradd -m builder
+        echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
     - name: Configure git to use the AUR remote
       env:
@@ -37,19 +35,19 @@ jobs:
         GIT_COMMITTER_EMAIL: ${{ secrets.GIT_COMMITTER_EMAIL }}
         GIT_COMMITTER_NAME: ${{ secrets.GIT_COMMITTER_NAME }}
       run: |
-        mkdir -p /home/githubuser/.ssh
-        echo "$AUR_SSH_PRIVATE_KEY" > /home/githubuser/.ssh/aur
-        chmod 600 /home/githubuser/.ssh/aur
-        echo "$AUR_SSH_PUBLIC_KEY" > /home/githubuser/.ssh/aur.pub
-        chmod 644 /home/githubuser/.ssh/aur.pub
-        ssh-keyscan aur.archlinux.org >> /home/githubuser/.ssh/known_hosts
-        chown -R githubuser:githubuser /home/githubuser/.ssh
-        sudo -u githubuser git config --global init.defaultBranch master
-        sudo -u githubuser git config --global --add safe.directory /__w/aur-dashlane-cli/aur-dashlane-cli
-        sudo -u githubuser git init
-        sudo -u githubuser git remote add aur "$AUR_SSH_REMOTE"
-        sudo -u githubuser git config --global user.email "$GIT_COMMITTER_EMAIL"
-        sudo -u githubuser git config --global user.name "$GIT_COMMITTER_NAME"
+        mkdir -p /home/builder/.ssh
+        echo "$AUR_SSH_PRIVATE_KEY" > /home/builder/.ssh/aur
+        chmod 600 /home/builder/.ssh/aur
+        echo "$AUR_SSH_PUBLIC_KEY" > /home/builder/.ssh/aur.pub
+        chmod 644 /home/builder/.ssh/aur.pub
+        ssh-keyscan aur.archlinux.org >> /home/builder/.ssh/known_hosts
+        git config --global init.defaultBranch master
+        git config --global --add safe.directory /__w/aur-dashlane-cli/aur-dashlane-cli
+        git init
+        git remote add aur "$AUR_SSH_REMOTE"
+        git config --global user.email "$GIT_COMMITTER_EMAIL"
+        git config --global user.name "$GIT_COMMITTER_NAME"
+        chown -R builder:builder /home/builder/.ssh
 
     - name: Prepare and publish
-      run: sudo -u githubuser just publish
+      run: sudo -u builder just publish
