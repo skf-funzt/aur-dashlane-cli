@@ -4,7 +4,7 @@ default:
     @just --choose
 
 _install-pacman-contrib:
-    @if [ -z "$GITHUB_ACTION" ]; then sudo pacman -S pacman-contrib --noconfirm; else pacman -S pacman-contrib --noconfirm; fi
+    @if [ -z "$CI" ]; then sudo pacman -S pacman-contrib --noconfirm; else pacman -S pacman-contrib --noconfirm; fi
 
 build:
     @makepkg
@@ -45,10 +45,10 @@ _checksum:
     @updpkgsums
 
 _install:
-    @if [ -z "$GITHUB_ACTION" ]; then sudo pacman -U *.pkg.tar.zst --noconfirm; else pacman -U *.pkg.tar.zst --noconfirm; fi
+    @if [ -z "$CI" ]; then sudo pacman -U *.pkg.tar.zst --noconfirm; else pacman -U *.pkg.tar.zst --noconfirm; fi
 
 _uninstall:
-    @if [ -z "$GITHUB_ACTION" ]; then sudo pacman -R {{ pkgbase }} --noconfirm; else pacman -R {{ pkgbase }} --noconfirm; fi
+    @if [ -z "$CI" ]; then sudo pacman -R {{ pkgbase }} --noconfirm; else pacman -R {{ pkgbase }} --noconfirm; fi
 
 _src-version:
     @cd src/{{ pkgbase }} && git describe --long --tags --abbrev=7 | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
