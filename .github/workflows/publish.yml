@@ -41,8 +41,9 @@ jobs:
         echo "$AUR_SSH_PUBLIC_KEY" > ~/.ssh/aur.pub
         chmod 644 ~/.ssh/aur.pub
         ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
-        git init
         git config --global init.defaultBranch master
+        git config --global --add safe.directory /__w/aur-dashlane-cli/aur-dashlane-cli
+        git init
         git remote add aur "$AUR_SSH_REMOTE"
         git config --global user.email "$GIT_COMMITTER_EMAIL"
         git config --global user.name "$GIT_COMMITTER_NAME"
