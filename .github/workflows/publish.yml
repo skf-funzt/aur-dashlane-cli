@@ -1,0 +1,39 @@
+name: Publish to AUR
+
+on:
+  schedule:
+    - cron: '0 0 * * MON' # Every Monday at midnight
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Install just
+      uses: extractions/setup-just@v2
+
+      # Available secrets:
+      # AUR_SSH_PRIVATE_KEY
+      # AUR_SSH_REMOTE
+      # GIT_COMMITTER_EMAIL
+      # GIT_COMMITTER_NAME
+    - name: Configure git to use the AUR remote
+      run: |
+        mkdir -p ~/.ssh
+        echo "$AUR_SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
+        git remote add aur "$AUR_SSH_REMOTE"
+        git config --global user.email "$GIT_COMMITTER_EMAIL"
+        git config --global user.name "$GIT_COMMITTER_NAME"
+
+    - name: Prepare and publish
+      run: just publish
