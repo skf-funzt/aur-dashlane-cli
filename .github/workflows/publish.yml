@@ -13,7 +13,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v3·
 
     - name: Install just
       uses: extractions/setup-just@v2
@@ -22,11 +22,6 @@ jobs:
       run: |
         pacman -Sy --noconfirm openssh git
 
-    - uses: actions/checkout@v3
-      with:
-        ssh-key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
-        ssh-known-hosts: aur.archlinux.org
-
       # Available secrets:
       # AUR_SSH_PRIVATE_KEY
       # AUR_SSH_REMOTE
@@ -34,9 +29,18 @@ jobs:
       # GIT_COMMITTER_NAME
     - name: Configure git to use the AUR remote
       env:
+        AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+        AUR_SSH_PUBLIC_KEY: ${{ secrets.AUR_SSH_PUBLIC_KEY }}
+        AUR_SSH_REMOTE: ${{ secrets.AUR_SSH_REMOTE }}
         GIT_COMMITTER_EMAIL: ${{ secrets.GIT_COMMITTER_EMAIL }}
         GIT_COMMITTER_NAME: ${{ secrets.GIT_COMMITTER_NAME }}
       run: |
+        mkdir -p ~/.ssh
+        echo "$AUR_SSH_PRIVATE_KEY" > ~/.ssh/aur
+        chmod 600 ~/.ssh/aur
+        echo "$AUR_SSH_PUBLIC_KEY" > ~/.ssh/aur.pub
+        chmod 644 ~/.ssh/aur.pub
+        ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
         git remote add aur "$AUR_SSH_REMOTE"
         git config --global user.email "$GIT_COMMITTER_EMAIL"
         git config --global user.name "$GIT_COMMITTER_NAME"
