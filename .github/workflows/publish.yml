@@ -47,4 +47,6 @@ jobs:
         chown -R builder:builder /home/builder/.ssh
 
     - name: Prepare and publish
+      env:
+        CI: true
       run: sudo -u builder just publish
