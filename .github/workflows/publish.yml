@@ -30,6 +30,11 @@ jobs:
       # GIT_COMMITTER_EMAIL
       # GIT_COMMITTER_NAME
     - name: Configure git to use the AUR remote
+      env:
+        AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+        AUR_SSH_REMOTE: ${{ secrets.AUR_SSH_REMOTE }}
+        GIT_COMMITTER_EMAIL: ${{ secrets.GIT_COMMITTER_EMAIL }}
+        GIT_COMMITTER_NAME: ${{ secrets.GIT_COMMITTER_NAME }}
       run: |
         mkdir -p ~/.ssh
         echo "$AUR_SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
