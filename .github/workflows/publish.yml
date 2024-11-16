@@ -42,6 +42,7 @@ jobs:
         chmod 644 /home/builder/.ssh/aur.pub
         ssh-keyscan aur.archlinux.org >> /home/builder/.ssh/known_hosts
         git config --global init.defaultBranch master
+        git config --global --add safe.directory .
         git init
         git remote add aur "$AUR_SSH_REMOTE"
         git config --global user.email "$GIT_COMMITTER_EMAIL"
