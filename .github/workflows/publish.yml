@@ -22,7 +22,7 @@ jobs:
 
     - name: Install required packages
       run: |
-        pacman -Sy --noconfirm openssh
+        pacman -Sy --noconfirm openssh git
 
       # Available secrets:
       # AUR_SSH_PRIVATE_KEY
