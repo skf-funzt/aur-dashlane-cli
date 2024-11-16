@@ -10,7 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: archlinux:latest
-
+    defaults:
+      run:
+        working-directory: /home/githubuser
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
@@ -20,13 +22,13 @@ jobs:
 
     - name: Install required packages
       run: |
-        pacman -Sy --noconfirm openssh git
+        pacman -Sy --noconfirm openssh git sudo
 
-      # Available secrets:
-      # AUR_SSH_PRIVATE_KEY
-      # AUR_SSH_REMOTE
-      # GIT_COMMITTER_EMAIL
-      # GIT_COMMITTER_NAME
+    - name: Create non-root user
+      run: |
+        useradd -m githubuser
+        echo "githubuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
     - name: Configure git to use the AUR remote
       env:
         AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
@@ -35,18 +37,19 @@ jobs:
         GIT_COMMITTER_EMAIL: ${{ secrets.GIT_COMMITTER_EMAIL }}
         GIT_COMMITTER_NAME: ${{ secrets.GIT_COMMITTER_NAME }}
       run: |
-        mkdir -p ~/.ssh
-        echo "$AUR_SSH_PRIVATE_KEY" > ~/.ssh/aur
-        chmod 600 ~/.ssh/aur
-        echo "$AUR_SSH_PUBLIC_KEY" > ~/.ssh/aur.pub
-        chmod 644 ~/.ssh/aur.pub
-        ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
-        git config --global init.defaultBranch master
-        git config --global --add safe.directory /__w/aur-dashlane-cli/aur-dashlane-cli
-        git init
-        git remote add aur "$AUR_SSH_REMOTE"
-        git config --global user.email "$GIT_COMMITTER_EMAIL"
-        git config --global user.name "$GIT_COMMITTER_NAME"
+        mkdir -p /home/githubuser/.ssh
+        echo "$AUR_SSH_PRIVATE_KEY" > /home/githubuser/.ssh/aur
+        chmod 600 /home/githubuser/.ssh/aur
+        echo "$AUR_SSH_PUBLIC_KEY" > /home/githubuser/.ssh/aur.pub
+        chmod 644 /home/githubuser/.ssh/aur.pub
+        ssh-keyscan aur.archlinux.org >> /home/githubuser/.ssh/known_hosts
+        chown -R githubuser:githubuser /home/githubuser/.ssh
+        sudo -u githubuser git config --global init.defaultBranch master
+        sudo -u githubuser git config --global --add safe.directory /__w/aur-dashlane-cli/aur-dashlane-cli
+        sudo -u githubuser git init
+        sudo -u githubuser git remote add aur "$AUR_SSH_REMOTE"
+        sudo -u githubuser git config --global user.email "$GIT_COMMITTER_EMAIL"
+        sudo -u githubuser git config --global user.name "$GIT_COMMITTER_NAME"
 
     - name: Prepare and publish
-      run: just publish
+      run: sudo -u githubuser just publish
