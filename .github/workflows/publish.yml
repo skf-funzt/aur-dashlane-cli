@@ -20,6 +20,10 @@ jobs:
     - name: Install just
       uses: extractions/setup-just@v2
 
+    - name: Install required packages
+      run: |
+        pacman -Sy --noconfirm openssh
+
       # Available secrets:
       # AUR_SSH_PRIVATE_KEY
       # AUR_SSH_REMOTE
