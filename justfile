@@ -59,8 +59,10 @@ _tag-name:
     @echo "$(just _src-version).$(just _commit-count)"
 
 prepare: _install-pacman-contrib _bump-pkgrel _checksum _srcinfo rebuild
+prepare-ci: _install-pacman-contrib _bump-pkgrel _checksum _srcinfo
 
-publish: prepare
+publish: prepare publish-ci
+publish-ci:
     @echo -e "\e[36mNew version: $(just _src-version).$(just _commit-count)\e[0m"
     @git add .
     @echo -e "\e[36mCommitting and tagging...\e[0m"
