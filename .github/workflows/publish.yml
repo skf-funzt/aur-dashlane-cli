@@ -13,7 +13,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3·
+      uses: actions/checkout@v3
 
     - name: Install just
       uses: extractions/setup-just@v2
