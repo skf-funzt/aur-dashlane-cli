@@ -2,7 +2,7 @@ name: Publish to AUR
 
 on:
   schedule:
-    - cron: '0 0 * * MON' # Every Monday at midnight
+    - cron: '6 0 * * MON' # Every Monday at 6am
   workflow_dispatch:
 
 jobs:
