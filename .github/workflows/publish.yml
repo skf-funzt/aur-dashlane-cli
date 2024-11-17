@@ -20,9 +20,9 @@ jobs:
         fetch-depth: 0
         set-safe-directory: true
 
-    # - name: Install required packages
-    #   run: |
-    #     pacman -Sy --noconfirm openssh git sudo just
+    - name: Install required packages
+      run: |
+        pacman -Sy --noconfirm openssh git sudo just
 
     - name: Create non-root user
       run: |
