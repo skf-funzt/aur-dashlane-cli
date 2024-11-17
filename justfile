@@ -35,7 +35,7 @@ _cleanbuild: _delete-all
     @makepkg -C
 
 _commit-count:
-    @git rev-list --count HEAD
+    @git rev-list --count origin/main..$(git branch --show-current)
 
 _bump-pkgrel:
     @sed -i "s/pkgrel=[0-9]*/pkgrel=$(just _commit-count)/" PKGBUILD
