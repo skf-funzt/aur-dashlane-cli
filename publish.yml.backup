@@ -1,0 +1,89 @@
+name: Publish to AUR
+
+on:
+  schedule:
+    - cron: '6 0 * * MON' # Every Monday at 6am
+    - cron: '6 0 * * MON' # Every Monday at 6am
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+      #   ref: ${{ github.head_ref || github.ref_name }}
+      #   fetch-depth: 0
+        set-safe-directory: true
+
+    - name: Create non-root user
+      run: |
+        echo "root ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
+    - name: Install required packages
+      run: |
+        pacman -Sy --noconfirm openssh git sudo just pacman-contrib
+
+    - name: Configure git to use the AUR remote
+      if: ${{ !env.ACT }}
+      env:
+        AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+        AUR_SSH_PUBLIC_KEY: ${{ secrets.AUR_SSH_PUBLIC_KEY }}
+        AUR_SSH_REMOTE: ${{ secrets.AUR_SSH_REMOTE }}
+        GIT_COMMITTER_EMAIL: ${{ secrets.GIT_COMMITTER_EMAIL }}
+        GIT_COMMITTER_NAME: ${{ secrets.GIT_COMMITTER_NAME }}
+      run: |
+        mkdir -p /home/nobody/.ssh
+        echo "$AUR_SSH_PRIVATE_KEY" > /home/nobody/.ssh/aur
+        chmod 600 /home/nobody/.ssh/aur
+        echo "$AUR_SSH_PUBLIC_KEY" > /home/nobody/.ssh/aur.pub
+        chmod 644 /home/nobody/.ssh/aur.pub
+        ssh-keyscan aur.archlinux.org >> /home/nobody/.ssh/known_hosts
+        git config --global init.defaultBranch master
+        git config --global --add safe.directory .
+        git init
+        git remote add aur "$AUR_SSH_REMOTE"
+        git config --global user.email "$GIT_COMMITTER_EMAIL"
+        git config --global user.name "$GIT_COMMITTER_NAME"
+        chown -R nobody:nobody /home/nobody/.ssh
+
+    - name: _bump-pkgrel
+      run: |
+        sudo -u nobody just _bump-pkgrel
+
+    - name: _checksum
+      run: |
+        sudo -u nobody just _checksum
+
+    - name: _srcinfo
+      run: |
+        sudo -u nobody just _srcinfo
+
+    - name: rebuild
+      run: |
+        sudo -u nobody just rebuild
+
+    - name: publish-ci
+      run: |
+        just publish-ci
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    - name: Publish AUR package
+      uses: KSXGitHub/github-actions-deploy-aur@v3.0.1
+      with:
+        pkgname: dashlane-cli-git
+        pkgbuild: ./PKGBUILD
+        commit_username: ${{ secrets.GIT_COMMITTER_NAME }} # ${{ secrets.AUR_USERNAME }}
+        commit_email: ${{ secrets.GIT_COMMITTER_EMAIL }} # ${{ secrets.AUR_EMAIL }}
+        ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+        commit_message: Update AUR package
+        ssh_keyscan_types: rsa,ecdsa,ed25519
